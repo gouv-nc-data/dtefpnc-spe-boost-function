@@ -48,7 +48,7 @@ def upload(json):
 
 
 @functions_framework.http
-def boost(request):
+def spe_boost(request):
     offres = load()
     df = transform(offres)
     upload(df)
@@ -56,4 +56,4 @@ def boost(request):
 
 
 if __name__ == "__main__":
-    boost(None)
+    spe_boost(None)
