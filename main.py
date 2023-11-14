@@ -3,6 +3,7 @@ import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import google
+from unidecode import unidecode
 
 BOOST_URL = "https://www.province-sud.nc/searchweb/searchweb/DocSolr?classNaturalName=Offre%20d%27emploi%20%2F%20Stage&limit=2000&page=0&start=0&_responseMode=json"
 
@@ -19,6 +20,13 @@ logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
 
 
+def normalize_commune(nom):
+    if nom is not None:
+        return unidecode(nom).lower()
+    else:
+        return None
+
+
 def load():
     print("######## load ########")
     response = requests.get(BOOST_URL)
@@ -28,8 +36,10 @@ def load():
 
 def transform(offres):
     print("######## transform ########")
+    print(offres[:5])
     for offre in offres:
         offre["highlighting"] = None if offre["highlighting"] == {} else offre["highlighting"]
+        offre["communeLocalisation"] = normalize_commune(offre["communeLocalisation"])
     return offres
 
 
