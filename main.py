@@ -9,7 +9,7 @@ BOOST_URL = "https://www.province-sud.nc/searchweb/searchweb/DocSolr?classNatura
 
 # PROD
 GCP_PROJECT_ID ="prj-dtefpnc-p-bq-c3bc"
-BQ_DATASET = "spe"
+BQ_DATASET = "boost"
 
 # creds = service_account.Credentials.from_service_account_file("prj-dtefpnc-p-bq-c3bc-4674a1c473e9.json")
 creds, _ = google.auth.default()
