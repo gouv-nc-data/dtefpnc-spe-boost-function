@@ -51,7 +51,7 @@ def upload(json):
     table = client.create_table(table_ref, exists_ok=True)
     job_config = bigquery.LoadJobConfig(autodetect = True,
                                         write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE)    
-    job = client.load_table_from_dataframe(json, table, job_config=job_config)
+    job = client.load_table_from_json(json, table, job_config=job_config)
     job.result()
     print(f"Loaded {job.output_rows} rows into {table_id}")
 
