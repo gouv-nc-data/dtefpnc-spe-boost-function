@@ -11,13 +11,13 @@ BOOST_URL = "https://www.province-sud.nc/drhouseweb/api/GOUV_WEB/societe/offre_e
 GCP_PROJECT_ID ="prj-dtefpnc-p-bq-c3bc"
 BQ_DATASET = "boost"
 
-creds = service_account.Credentials.from_service_account_file("prj-dtefpnc-p-bq-c3bc-b13e47749534.json")
-#creds, _ = google.auth.default()
+# creds = service_account.Credentials.from_service_account_file("prj-dtefpnc-p-bq-c3bc-b13e47749534.json")
+creds, _ = google.auth.default()
 
 # Gestion des logs dans cloud run
-# import google.cloud.logging
-# logging_client = google.cloud.logging.Client()
-# logging_client.setup_logging()
+import google.cloud.logging
+logging_client = google.cloud.logging.Client()
+logging_client.setup_logging()
 
 
 def normalize_commune(nom):
