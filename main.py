@@ -5,19 +5,19 @@ from google.oauth2 import service_account
 import google
 from unidecode import unidecode
 
-BOOST_URL = "https://www.province-sud.nc/searchweb/searchweb/DocSolr?classNaturalName=Offre%20d%27emploi%20%2F%20Stage&limit=2000&page=0&start=0&_responseMode=json"
+BOOST_URL = "https://www.province-sud.nc/drhouseweb/api/GOUV_WEB/societe/offre_emploi/data?apiKey=psudApiKey-8b41d80109d34439b25b47e4dd2b0413"
 
 # PROD
 GCP_PROJECT_ID ="prj-dtefpnc-p-bq-c3bc"
 BQ_DATASET = "boost"
 
-# creds = service_account.Credentials.from_service_account_file("prj-dtefpnc-p-bq-c3bc-4674a1c473e9.json")
-creds, _ = google.auth.default()
+creds = service_account.Credentials.from_service_account_file("prj-dtefpnc-p-bq-c3bc-b13e47749534.json")
+#creds, _ = google.auth.default()
 
 # Gestion des logs dans cloud run
-import google.cloud.logging
-logging_client = google.cloud.logging.Client()
-logging_client.setup_logging()
+# import google.cloud.logging
+# logging_client = google.cloud.logging.Client()
+# logging_client.setup_logging()
 
 
 def normalize_commune(nom):
@@ -28,25 +28,38 @@ def normalize_commune(nom):
 
 
 def load():
-    print("######## load ########")
+    data = []
     response = requests.get(BOOST_URL)
     response.raise_for_status()
-    return response.json()["data"]
+    res = response.json()
+    data.extend(res["data"])
+    while True:
+        if "hasNextPage" in res and res["paramsNextPageQuery"] is not None:
+            url = BOOST_URL+"&id%7CGt="+res["paramsNextPageQuery"]["id|Gt"]
+            res = requests.get(url).json()
+            data.extend(res["data"])
+            for offre in res["data"]:
+                if "logiciel" not in offre:
+                    print(url)
+            if len(data) % 5000 == 0:
+                print(len(data))
+        else:
+            break
+        
+    return data
 
 
 def transform(offres):
     print("######## transform ########")
-    print(offres[:5])
     for offre in offres:
-        offre["highlighting"] = None if offre["highlighting"] == {} else offre["highlighting"]
-        offre["communeLocalisation"] = normalize_commune(offre["communeLocalisation"])
+        del offre["logiciel"]
     return offres
 
 
 def upload(json):
     print("######## upload ########")
     client = bigquery.Client(GCP_PROJECT_ID, credentials=creds,)
-    table_id = "%s.%s.%s" % (GCP_PROJECT_ID, BQ_DATASET, 'boost')
+    table_id = "%s.%s.%s" % (GCP_PROJECT_ID, BQ_DATASET, 'offres_v2')
     table_ref = bigquery.Table(table_id)
     table = client.create_table(table_ref, exists_ok=True)
     job_config = bigquery.LoadJobConfig(autodetect = True,
@@ -58,6 +71,7 @@ def upload(json):
 @functions_framework.http
 def spe_boost(request):
     offres = load()
+    print(len(offres))
     df = transform(offres)
     upload(df)
     return "transfert terminé"
