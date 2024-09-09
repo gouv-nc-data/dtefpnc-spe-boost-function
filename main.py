@@ -52,7 +52,11 @@ def load():
 def transform(offres):
     print("######## transform ########")
     for offre in offres:
-        del offre["logiciel"]
+        if isinstance(offre, dict):
+            del offre["logiciel"]
+        else:
+            print(f"Error: Expected a dict but got : {type(offre)}")
+            print(f"Offre : {offre}")
     return offres
 
 
