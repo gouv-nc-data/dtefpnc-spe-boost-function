@@ -1,10 +1,11 @@
-import functions_framework # obligatoire pour l'exe cloud, a commenter en local
 import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import google
 from unidecode import unidecode
-import logging
+
+import functions_framework
+import google.cloud.logging
 
 BOOST_URL = "https://www.province-sud.nc/drhouseweb/api/GOUV_WEB/societe/offre_emploi/data?apiKey=***REMOVED***"
 
@@ -16,7 +17,6 @@ BQ_DATASET = "boost"
 creds, _ = google.auth.default()
 
 # Gestion des logs dans cloud run
-import google.cloud.logging
 logging_client = google.cloud.logging.Client()
 logging_client.setup_logging()
 
@@ -35,8 +35,8 @@ def load():
     try:
         res = response.json()
     except ValueError as e:
-        logging.error(f"Erreur lors de l'extraction du JSON : {e}")
-        logging.error(f"Erreur de parse, reponse : {response.text}")
+        print(f"Erreur lors de l'extraction du JSON : {e}")
+        print(f"Erreur de parse, reponse : {response.text}")
 
     data.extend(res["data"])
     while True:
