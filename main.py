@@ -4,6 +4,7 @@ from google.cloud import bigquery
 from google.oauth2 import service_account
 import google
 from unidecode import unidecode
+import logging
 
 BOOST_URL = "https://www.province-sud.nc/drhouseweb/api/GOUV_WEB/societe/offre_emploi/data?apiKey=psudApiKey-8b41d80109d34439b25b47e4dd2b0413"
 
@@ -31,7 +32,12 @@ def load():
     data = []
     response = requests.get(BOOST_URL)
     response.raise_for_status()
-    res = response.json()
+    try:
+        res = response.json()
+    except ValueError as e:
+        logging.error(f"Erreur lors de l'extraction du JSON : {e}")
+        logging.error(f"Erreur de parse, reponse : {response.text}")
+
     data.extend(res["data"])
     while True:
         if "hasNextPage" in res and res["paramsNextPageQuery"] is not None:
